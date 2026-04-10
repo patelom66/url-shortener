@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — SnapLink</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="dash-container">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <a href="/" class="logo">⚡ SnapLink</a>
+    <span class="dash-title">Dashboard</span>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ total_urls }}</div>
+      <div class="stat-label">Links Created</div>
+    </div>
+    <div class="stat-card accent">
+      <div class="stat-number">{{ total_clicks }}</div>
+      <div class="stat-label">Total Clicks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">
+        {{ (total_clicks / total_urls) | round(1) if total_urls > 0 else 0 }}
+      </div>
+      <div class="stat-label">Avg Clicks / Link</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3 class="chart-title">Clicks — Last 7 Days</h3>
+      <canvas id="lineChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3 class="chart-title">Top 5 Links by Clicks</h3>
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Links Table -->
+  <div class="table-card">
+    <h3 class="chart-title">All Links</h3>
+    {% if urls %}
+    <table class="links-table">
+      <thead>
+        <tr>
+          <th>Short Code</th>
+          <th>Original URL</th>
+          <th>Created</th>
+          <th>Clicks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for url in urls %}
+        <tr>
+          <td>
+            <a href="/{{ url.short_code }}" target="_blank" class="code-link">
+              /{{ url.short_code }}
+            </a>
+          </td>
+          <td class="original-url">{{ url.original[:60] }}{% if url.original|length > 60 %}...{% endif %}</td>
+          <td class="muted">{{ url.created_at.strftime('%b %d, %Y') }}</td>
+          <td>
+            <span class="click-badge">{{ url.click_count }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted" style="padding: 1rem 0;">No links yet. <a href="/" class="accent-link">Create one →</a></p>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  const accent  = '#00e5a0';
+  const accentD = '#00b37d';
+  const surface = '#1a1a1a';
+  const muted   = '#555';
+  const text    = '#f0f0f0';
+
+  Chart.defaults.color = text;
+  Chart.defaults.borderColor = '#2e2e2e';
+
+  // Line Chart — clicks over time
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: {{ chart_labels | tojson }},
+      datasets: [{
+        label: 'Clicks',
+        data: {{ chart_data | tojson }},
+        borderColor: accent,
+        backgroundColor: 'rgba(0, 229, 160, 0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: accent,
+        pointRadius: 4,
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#2e2e2e' } },
+        y: { grid: { color: '#2e2e2e' }, beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+
+  // Bar Chart — top URLs
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ top_labels | tojson }},
+      datasets: [{
+        label: 'Clicks',
+        data: {{ top_data | tojson }},
+        backgroundColor: 'rgba(0, 229, 160, 0.2)',
+        borderColor: accent,
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#2e2e2e' } },
+        y: { grid: { color: '#2e2e2e' }, beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
