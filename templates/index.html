@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SnapLink — URL Shortener</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="container">
+
+    <header>
+      <div class="logo">⚡ SnapLink</div>
+      <p class="tagline">Paste long. Get short. Share fast.</p>
+    </header>
+
+    <main>
+      <form method="POST" action="/" class="shorten-form">
+
+        <div class="input-group">
+          <input
+            type="text"
+            name="original_url"
+            placeholder="https://your-very-long-url.com/goes/here"
+            class="url-input"
+            required
+            autofocus
+          />
+          <button type="submit" class="btn-shorten">Shorten →</button>
+        </div>
+
+        {% if error %}
+          <div class="message error">⚠️ {{ error }}</div>
+        {% endif %}
+
+      </form>
+
+      {% if short_url %}
+      <div class="result-card">
+        <p class="result-label">Your short link is ready:</p>
+        <div class="result-row">
+          <a href="{{ short_url }}" target="_blank" class="short-link">{{ short_url }}</a>
+          <button class="btn-copy" onclick="copyLink('{{ short_url }}')">Copy</button>
+        </div>
+        <p class="result-note">Click the link to test the redirect ↗</p>
+      </div>
+      {% endif %}
+
+    </main>
+
+    <footer>
+      <p>Built with Flask · Week 1 of 4</p>
+    </footer>
+
+  </div>
+
+  <script>
+    function copyLink(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.querySelector('.btn-copy');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
